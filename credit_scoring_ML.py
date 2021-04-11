@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib
 import sklearn
 import seaborn as sns
+import csv
 
 
 df = pd.read_csv('Loan_data.csv')
@@ -33,3 +34,15 @@ for col in df_minus_empty_col.columns:
     if round(pct_missing) == 1:
         almost_empty_col.append(col), almost_empty_col.append(value)
 print(almost_empty_col)
+
+with open('LCDataDictionary.csv', newline='') as csvfile:
+    read_data_dict = csv.reader(csvfile, delimiter=' ', quotechar='|')
+    for row in read_data_dict:
+        print(', '.join(row))
+
+data_dict = pd.read_csv('LCDataDictionary.csv')
+print(data_dict.head(n=20))
+
+for col in data_dict.columns:
+    if col == 0:
+        pass
