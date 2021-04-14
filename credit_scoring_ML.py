@@ -42,7 +42,7 @@ with open('LCDataDictionary.csv', newline='') as csvfile:
 
 data_dict = pd.read_csv('LCDataDictionary.csv')
 print(data_dict.head(n=20))
-
-for col in data_dict.columns:
-    if col == 0:
-        pass
+info_dict = {}
+for index, row in data_dict.iterrows():
+    if row.any() in almost_empty_col:
+        print('x', row)
