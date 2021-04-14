@@ -16,6 +16,7 @@ for col in df.columns:
 print(empty_col)
 df.head()
 
+
 cols = df.columns[:30]
 colours = ['#000099', '#ffff00'] # yellow is missing. blue is not missing.
 sns.heatmap(df[cols].isnull(), cmap=sns.color_palette(colours))
