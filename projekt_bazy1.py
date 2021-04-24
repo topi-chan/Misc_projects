@@ -22,11 +22,11 @@ db4 = SqlAlchemyCreate('postgresql://maciek:password@localhost/moja_baza', "klie
 db4.sql_create_5col_cstr_2("id_klienta", Integer, "id_zamówienia",
                            Integer, "imię", String, "nazwisko", String, "adres", String)
 
-db5 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+db5 = SqlAlchemyWrite('postgresql+psycopg2://maciek:password@localhost/moja_baza',
 """INSERT INTO dostawca(id_producenta, nazwa_producenta, adres_producenta, nip_producenta, data)
 VALUES(:id_producenta, :nazwa_producenta, :adres_producenta, :nip_producenta,
 :data)""")
-data = ({"id_producenta": 1, "nazwa_producenta": "Kopex",
+data = ({"id_producenta": 1, "nazwa_producenta": "kopex",
          "adres_producenta": "Jara 21B Libiąż", "nip_producenta": "74859",
          "data": "2020-11-01"},
         {"id_producenta": 2, "nazwa_producenta": "Jarex",
@@ -46,23 +46,23 @@ cena_brutto, netto_sprzedaz, brutto_sprzedaz, procent_vat_sprzedazy)
 VALUES(:id_produktu, :nazwa_producenta, :nazwa_produktu, :opis_produktu,
 :cena_netto, :cena_brutto, :netto_sprzedaz, :brutto_sprzedaz,
 :procent_VAT_sprzedazy)""")
-data = ({"id_produktu": 1, "nazwa_producenta": "Kopex",
+data = ({"id_produktu": 1, "nazwa_producenta": "kopex",
          "nazwa_produktu": "Skarpety", "opis_produktu": "piękne, różowe",
          "cena_netto": 8, "cena_brutto": 9, "netto_sprzedaz": 10, "brutto_sprzedaz": 10,
          "procent_VAT_sprzedazy": 23},
-        {"id_produktu": 2, "nazwa_producenta": "Kopex",
+        {"id_produktu": 2, "nazwa_producenta": "kopex",
          "nazwa_produktu": "Podkolanówki", "opis_produktu": "dla dziewcząt",
          "cena_netto": 4, "cena_brutto": 5, "netto_sprzedaz": 6, "brutto_sprzedaz": 6,
          "procent_VAT_sprzedazy": 23},
-        {"id_produktu": 3, "nazwa_producenta": "Kopex",
+        {"id_produktu": 3, "nazwa_producenta": "kopex",
          "nazwa_produktu": "Czapeczka", "opis_produktu": "z pomponem",
          "cena_netto": 13, "cena_brutto": 16, "netto_sprzedaz": 19, "brutto_sprzedaz": 21,
          "procent_VAT_sprzedazy": 23},
-        {"id_produktu": 4, "nazwa_producenta": "Kopex",
+        {"id_produktu": 4, "nazwa_producenta": "kopex",
          "nazwa_produktu": "Rajstopy czarne", "opis_produktu": "z ładnymi wzorkami",
          "cena_netto": 12, "cena_brutto": 14, "netto_sprzedaz": 15, "brutto_sprzedaz": 15,
          "procent_VAT_sprzedazy": 23},
-        {"id_produktu": 5, "nazwa_producenta": "Kopex",
+        {"id_produktu": 5, "nazwa_producenta": "kopex",
          "nazwa_produktu": "Stringi", "opis_produktu": "Wąskie!",
          "cena_netto": 25, "cena_brutto": 33, "netto_sprzedaz": 45, "brutto_sprzedaz": 49,
          "procent_VAT_sprzedazy": 23},
@@ -195,5 +195,191 @@ db12 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
 db12.sql_any_print()
 
 db13 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
-"select * from produkt where nazwa_producenta = 'kopex'")
+"select * from produkt where nazwa_producenta = 'kopex' ORDER BY nazwa_produktu")
 db13.sql_any_print()
+
+db14 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"select AVG(cena_netto) from produkt where nazwa_producenta = 'kopex'")
+db14.sql_any_print()
+
+db15 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"select AVG(cena_netto) from produkt where nazwa_producenta = 'kopex'")
+db15.sql_any_print()
+
+db16 = SqlAlchemyCreate('postgresql://maciek:password@localhost/moja_baza', "tani_produkt")
+db16.sql_create_9col_cstr("id_produktu", Integer, "nazwa_producenta",
+                         String, "nazwa_produktu", String, "opis_produktu", String, "cena_netto", Integer,
+                         "cena_brutto", Integer, "netto_sprzedaz", Integer, "brutto_sprzedaz", Integer,
+                         "procent_vat_sprzedazy", Integer)
+
+db17 = SqlAlchemyCreate('postgresql://maciek:password@localhost/moja_baza', "drogi_produkt")
+db17.sql_create_9col_cstr("id_produktu", Integer, "nazwa_producenta",
+                         String, "nazwa_produktu", String, "opis_produktu", String, "cena_netto", Integer,
+                         "cena_brutto", Integer, "netto_sprzedaz", Integer, "brutto_sprzedaz", Integer,
+                         "procent_vat_sprzedazy", Integer)
+
+
+db18 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza', '''
+select *
+from produkt
+left join public.tani_produkt ON produkt.id_produktu = tani_produkt.id_produktu
+where produkt.cena_netto > 12.4
+ORDER BY produkt.id_produktu
+''')
+db18.sql_any_print()
+
+db19 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza', '''
+select *
+from produkt
+Left JOIN public.drogi_produkt ON produkt.id_produktu = drogi_produkt.id_produktu
+where produkt.cena_netto >= 12.4
+ORDER BY produkt.id_produktu
+''')
+db19.sql_any_print()
+
+db20 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+select nazwa_produktu from produkt
+inner join zamówienie on produkt.id_produktu = zamówienie.id_produktu
+limit 5
+""")
+db20.sql_any_print()
+
+db21 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+select sum(cena_netto) from produkt
+inner join zamówienie on produkt.id_produktu = zamówienie.id_produktu
+limit 5
+""")
+db21.sql_any_print()
+
+db22 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+select * from produkt
+inner join zamówienie on produkt.id_produktu = zamówienie.id_produktu
+limit 5
+""")
+db22.sql_any_print()
+
+#nie wiem jak zadeklarować datę w słowniku przy tworzeniu tablicy w sqlalchemy.
+#wskazanie stringa nie działa, a nie przypiszę trzech liczb do wartości w dict.
+db23 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+alter table zamówienie
+ADD data DATE
+""")
+db23.sql_any()
+
+db24 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2011-11-02' where id_zamówienia = 1
+""")
+db24.sql_any()
+
+db25 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2019-11-06' where id_zamówienia = 2
+""")
+db25.sql_any()
+
+db26 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2021-03-26' where id_zamówienia = 3
+""")
+db26.sql_any()
+
+db27 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2021-04-02' where id_zamówienia = 4
+""")
+db27.sql_any()
+
+db28 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2020-12-21' where id_zamówienia = 5
+""")
+db28.sql_any()
+
+db29 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2021-01-21' where id_zamówienia = 6
+""")
+db29.sql_any()
+
+db30 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2018-10-01' where id_zamówienia = 7
+""")
+db30.sql_any()
+
+db31 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2021-02-26' where id_zamówienia = 8
+""")
+db31.sql_any()
+
+db32 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2021-01-26' where id_zamówienia = 9
+""")
+db32.sql_any()
+
+db33 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+update zamówienie
+set data = '2020-07-14' where id_zamówienia = 10
+""")
+db33.sql_any()
+
+db34 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+select * from produkt
+inner join zamówienie on produkt.id_produktu = zamówienie.id_produktu
+order by data
+""")
+db34.sql_any_print()
+
+db35 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+SELECT *
+FROM produkt
+WHERE id_produktu IS NULL OR nazwa_producenta IS NULL OR nazwa_produktu IS null OR opis_produktu IS NULL OR cena_netto IS null
+OR cena_brutto IS null OR netto_sprzedaz IS NULL OR brutto_sprzedaz IS null OR procent_vat_sprzedazy IS NULL
+""")
+db35.sql_any_print()
+
+db36 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+select * from produkt
+inner join zamówienie on produkt.id_produktu = zamówienie.id_produktu
+order by data
+""")
+db36.sql_any_print()
+
+db37 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+select produkt.nazwa_produktu, produkt.cena_brutto, count(produkt.id_produktu) from produkt
+inner join zamówienie on produkt.id_produktu = zamówienie.id_produktu
+group by produkt.id_produktu, zamówienie.id_zamówienia
+ORDER BY COUNT(produkt.id_produktu) desc
+""")
+db37.sql_any_print()
+
+
+db38 = SqlAlchemyWrite('postgresql://maciek:password@localhost/moja_baza',
+"""
+select produkt.nazwa_produktu, produkt.cena_brutto, count(zamówienie.data) from produkt
+inner join zamówienie on produkt.id_produktu = zamówienie.id_produktu
+group by produkt.id_produktu, zamówienie.id_zamówienia
+ORDER BY COUNT(zamówienie.data) desc
+""")
+db38.sql_any_print()
