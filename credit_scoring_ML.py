@@ -14,7 +14,7 @@ for col in df.columns:
 print(empty_col)
 df.head()
 
-cols = df.columns[:30]
+cols = df.columns[:]
 colours = ['#000099', '#ffff00'] # yellow is missing. blue is not missing
 sns.heatmap(df[cols].isnull(), cmap=sns.color_palette(colours))
 print(empty_col)
@@ -22,14 +22,16 @@ df_minus_empty_col = df.drop(empty_col, axis=1)
 
 print(df_minus_empty_col.head(n=20))
 
-almost_empty_col = []
-for col in df_minus_empty_col.columns:
-    pct_missing = np.mean(df[col].isnull())
-    value = float(np.mean(df[col].isnull()))
-    print('{} - {}%'.format(col, round(pct_missing*100)))
-    if round(pct_missing) == 1:
-        almost_empty_col.append(col), almost_empty_col.append(value)
-print(almost_empty_col)
+def empty_check(df_instance):
+    almost_empty_col = []
+    for col in df_instance.columns:
+        pct_missing = np.mean(df[col].isnull())
+        value = float(np.mean(df[col].isnull()))
+        print('{} - {}%'.format(col, round(pct_missing*100)))
+        if round(pct_missing) == 1:
+            almost_empty_col.append(col), almost_empty_col.append(value)
+    print(almost_empty_col)
+empty_check(df_minus_empty_col)
 df = df_minus_empty_col
 
 df_descr = pd.read_csv('LCDataDictionary.csv')
@@ -59,17 +61,31 @@ df_descr.loc[150, 'Description']
 for l in loc:
     print(df_descr.loc[l, 'LoanStatNew'])
 df['mths_since_last_delinq'].head()
+df['mths_since_last_delinq'].mean()
+df['mths_since_last_delinq'].median()
+df['mths_since_last_delinq'].max()
+df['mths_since_last_delinq'].quantile([0.25,0.5,0.75])
+df['mths_since_last_delinq'] = pd.qcut(df
+                              ['mths_since_last_delinq'].values, q = 10).codes+1
 
 df['mths_since_last_delinq'] = df['mths_since_last_delinq'].replace(to_replace
-                                                    = np.nan, value = -99999)
-df['mths_since_last_delinq'].head()
+                                                            = 0, value = 20)
+df['mths_since_last_delinq'].head(n=25)
+
 
 df['mths_since_last_record'].head()
+df['mths_since_last_record'].mean()
+df['mths_since_last_record'].median()
+df['mths_since_last_record'].max()
+df['mths_since_last_record'].quantile([0.25,0.5,0.75])
+df['mths_since_last_record'] = pd.qcut(df['mths_since_last_record'].values,
+                               q = 10, duplicates='drop').codes+1
 df['mths_since_last_record'] = df['mths_since_last_record'].replace(to_replace
-                                                    = np.nan, value = -99999)
-df['mths_since_last_record'].head()
+                                                            = 0, value = 20)
+df['mths_since_last_record'].mean()
 
-df.drop(['next_pymnt_d', 'debt_settlement_flag_date', 'settlement_status',
+
+df = df.drop(['next_pymnt_d', 'debt_settlement_flag_date', 'settlement_status',
         'debt_settlement_flag_date', 'settlement_date', 'settlement_amount',
         'settlement_percentage', 'settlement_term'], axis = 1)
 
@@ -102,23 +118,40 @@ print(mean_str_len)
 str_median_len = statistics.median(list_for_median)
 print(str_median_len)
 
-for row in df['desc']:
+for i, row in df['desc'].iteritems():
     row = str(row)
     row_len = len(row)
     if row_len == 0:
-        row = 0
+        row_value = 0
     elif row_len <= str_median_len:
-        row = 0.5
+        row_value = 0.5
     elif row_len <= mean_str_len:
-        row = 0.75
+        row_value = 0.75
     else:
-        row = 1
+        row_value = 1
+    df.at[i,'desc'] = row_value
 
 df['desc'].head(n=15)
 
 cols = df.columns[29:]
 colours = ['#000099', '#ffff00'] # yellow is missing. blue is not missing
 sns.heatmap(df[cols].isnull(), cmap=sns.color_palette(colours))
+
+empty_check(df)
+
+df.loc[random.randrange(1, 40520), 'emp_title']
+df.loc[random.randrange(1, 40520), 'emp_length']
+
+loc = []
+loc.append(df_descr.index[df_descr['LoanStatNew']=='emp_title'].tolist())
+loc.append(df_descr.index[df_descr['LoanStatNew']=='emp_length'].tolist())
+for l in loc:
+    print(df_descr.loc[l, 'Description'])
+df_descr.loc[20, 'Description']
+df_descr.loc[19, 'Description']
+
+df_descr['emp_title']
+df_descr.loc[50, 'Description']
 
 #df.iloc[:,50].fillna(0, inplace=True)
 
