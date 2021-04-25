@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
-import matplotlib
-import sklearn
 import seaborn as sns
-import csv
+import matplotlib, sklearn, csv, random, statistics
 
 
 df = pd.read_csv('Loan_data.csv')
@@ -71,6 +69,56 @@ df['mths_since_last_record'] = df['mths_since_last_record'].replace(to_replace
                                                     = np.nan, value = -99999)
 df['mths_since_last_record'].head()
 
+df.drop(['next_pymnt_d', 'debt_settlement_flag_date', 'settlement_status',
+        'debt_settlement_flag_date', 'settlement_date', 'settlement_amount',
+        'settlement_percentage', 'settlement_term'], axis = 1)
+
+
+cols = df.columns[:30]
+colours = ['#000099', '#ffff00'] # yellow is missing. blue is not missing
+sns.heatmap(df[cols].isnull(), cmap=sns.color_palette(colours))
+
+df['desc'].head()
+df.loc[random.randrange(1, 40520), 'desc']
+# borrowers with description seems more reliable, as they care enough to provide
+# valid reason for taking a loan; let's try to assign value up to 1 to borrowers
+# with description and 0 to ones with no description.
+# (assuming the description avaibility depends on the lender, but stil we can
+# analyse description lenght)
+max_str_len = 0
+sum_str_len = 0
+list_for_median = []
+for row in df['desc']:
+    row = str(row)
+    row_len = len(row)
+    sum_str_len += row_len
+    list_for_median.append(row_len)
+    if row_len > max_str_len:
+        max_str_len = len(row)
+print(max_str_len)
+sum_str_len
+mean_str_len = sum_str_len / 40520
+print(mean_str_len)
+str_median_len = statistics.median(list_for_median)
+print(str_median_len)
+
+for row in df['desc']:
+    row = str(row)
+    row_len = len(row)
+    if row_len == 0:
+        row = 0
+    elif row_len <= str_median_len:
+        row = 0.5
+    elif row_len <= mean_str_len:
+        row = 0.75
+    else:
+        row = 1
+
+df['desc'].head(n=15)
+
+cols = df.columns[29:]
+colours = ['#000099', '#ffff00'] # yellow is missing. blue is not missing
+sns.heatmap(df[cols].isnull(), cmap=sns.color_palette(colours))
 
 #df.iloc[:,50].fillna(0, inplace=True)
 
