@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import matplotlib, sklearn, csv, random, statistics
+import matplotlib, sklearn, csv, random, statistics, re
 
 
 df = pd.read_csv('Loan_data.csv')
@@ -150,8 +150,23 @@ for l in loc:
 df_descr.loc[20, 'Description']
 df_descr.loc[19, 'Description']
 
-df_descr['emp_title']
-df_descr.loc[50, 'Description']
+for i, row in df['emp_length'].iteritems():
+    row = str(row)
+    if re.search("10", row):
+        emp_lenght_value = 10
+    elif re.findall("[1-9]", row):
+        re_list = (re.findall("[1-9]", row))
+        emp_lenght_value = re_list.pop(0)
+    else:
+        emp_lenght_value = 0
+    df.at[i,'emp_length'] = emp_lenght_value
+
+df['emp_length'].head(n=25)
+
+df = df.drop(['emp_title'], axis = 1)
+
+
+empty_check(df)
 
 #df.iloc[:,50].fillna(0, inplace=True)
 
