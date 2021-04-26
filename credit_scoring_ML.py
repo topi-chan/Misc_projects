@@ -221,26 +221,86 @@ def check_non_num_rows(col_name):
         try:
             row = int(row)
         except:
-            print(i, row)
+            return (i, row)
 
 check_non_num_rows('term')
-#change month into integers
+#change months into integers
+for i, row in df['term'].iteritems():
+    row = str(row)
+    if re.search("36 months", row):
+        term = 0
+    elif re.search("60 months", row):
+        term = 1
+    df.at[i,'term'] = term
+#0 = 36 months; 1 = 60 months; no other value is present
+
 check_non_num_rows('int_rate')
 #change % into floats
+df['int_rate'].dtypes
+# for i, row in df['term'].iteritems():
+#     row = float(row)
+#     print(row)
+#maybe this will suffice? as data is hardly converted here
+
+
 check_non_num_rows('grade')
 #possibly leave it like that or change into integers for coherency and speed
+#let's use hot encoding.
+df = pd.concat([df.drop('grade', axis=1), pd.get_dummies(df['grade'])], axis=1)
+df.head()
+
 check_non_num_rows('sub_grade')
 #as above
+df = pd.concat([df.drop('sub_grade', axis=1),
+                                     pd.get_dummies(df['sub_grade'])], axis=1)
+df.head()
+
 check_non_num_rows('home_ownership')
 #as above + check if there is any abbreviation from the rule
+#MORTGAGE OWN RENT
+for i, row in df['home_ownership'].iteritems():
+    row = str(row)
+    if re.search("MORTGAGE", row) or re.search("OWN", row) or re.search("RENT", row):
+        pass
+    else:
+        print(i, row)
+df.at[39786,'home_ownership'] = 'NONE'
+df = pd.concat([df.drop('home_ownership', axis=1),
+                                  pd.get_dummies(df['home_ownership'])], axis=1)
+
+
+
 check_non_num_rows('annual_inc')
-#set last rows to mean or median or drop them
+#set empty rows to mean or median or 0 or drop them
+# df['annual_inc'].head(n=25)
+# for i, row in df['annual_inc'].iteritems():
+#     if row == 0.00:
+#         print(i, row)
+# df['annual_inc'].replace(to_replace=np.nan, value=0)
+#dropping is probably a better idea, since nan may be missing value and may
+#cloud a model
+df = df.drop(labels=[39786, 42450, 42451, 42481, 42534])
+
+
+def check_consistency(column, *phrases):
+    for (i, row), p in zip(df[column].iteritems(), phrases):
+        row = str(row)
+        if re.findall(p, row):
+                pass
+#        if re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row):
+#            pass
+        else:
+            print(i, row)
+
 check_non_num_rows('verification_status')
 #check whether there are only 3 values and change them into integers
+check_consistency('verification_status', 'Not Verified', 'Verified', 'Source Verified')
+
 check_non_num_rows('issue_d')
 #change into dates / numbers
 check_non_num_rows('loan_status')
 #check whether there are only 2 values and change them into integers
+#!! this is value to be predicted by the model!!
 check_non_num_rows('pymnt_plan')
 #check if there is other value than "N" and if not - drop column
 check_non_num_rows('url')
@@ -295,8 +355,18 @@ check_non_num_rows('debt_settlement_flag')
 #check if there is other than "cash" and if not - drop column
 
 
-
-
+def change_column(col_name):
+    for i, row in df[col_name].iteritems():
+            row = str(row)
+            if row == 0:
+                row_value = 0
+            elif row == row:
+                row_value = 0.5
+            elif row == row:
+                row_value = 0.75
+            else:
+                row_value = 1
+            df.at[i, col_name] = row_value
 
 
 
