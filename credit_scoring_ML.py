@@ -62,8 +62,8 @@ df_descr.loc[148, 'Description']
 df_descr.loc[149, 'Description']
 df_descr.loc[150, 'Description']
 
-for l in loc:
-    print(df_descr.loc[l, 'LoanStatNew'])
+# for l in loc:
+#     print(df_descr.loc[l, 'LoanStatNew'])
 
 df['mths_since_last_delinq'].head()
 df['mths_since_last_delinq'].mean()
@@ -159,7 +159,7 @@ for i, row in df['emp_length'].iteritems():
         emp_lenght_value = 10
     elif re.findall("[1-9]", row):
         re_list = (re.findall("[1-9]", row))
-        emp_lenght_value = re_list.pop(0)
+        emp_lenght_value = int(re_list.pop(0))
     else:
         emp_lenght_value = 0
     df.at[i,'emp_length'] = emp_lenght_value
@@ -183,20 +183,146 @@ df['pub_rec_bankruptcies'].head(n=15)
 
 
 #check if dataframe contains only numeric values
-str_elem = df.apply(lambda s: pd.to_numeric(s, errors='coerce').notnull().all())
-non_numeric_elements = []
-for i, row in str_elem.iteritems():
-    row = str(row)
-    if row == 'True':
-        non_numeric_elements.append(i)
+def numeric_check():
+    str_elem = df.apply(lambda s: pd.to_numeric(s, errors='coerce').notnull().all())
+    only_numeric_elements = []
+    for i, row in str_elem.iteritems():
+        row = str(row)
+        if row == 'False':
+            only_numeric_elements.append(i)
+    print(only_numeric_elements)
+numeric_check()
 
-non_numeric_elements
+df['id'].head(n=25)
 
+df.applymap(lambda x: isinstance(x, (int, float)))
+
+#these for which to_numeric returned true
+df['id']
+df['desc']
+df['mths_since_last_delinq']
+df['mths_since_last_record']
+df['pub_rec_bankruptcies']
+
+df.head(n=2)
+
+
+for i, row in df['id'].iteritems():
+    try:
+        row = int(row)
+    except:
+        print(i, row)
+df = df.drop(39786)
+
+numeric_check()
+
+def check_non_num_rows(col_name):
+    for i, row in df[col_name].iteritems():
+        try:
+            row = int(row)
+        except:
+            print(i, row)
+
+check_non_num_rows('term')
+#change month into integers
+check_non_num_rows('int_rate')
+#change % into floats
+check_non_num_rows('grade')
+#possibly leave it like that or change into integers for coherency and speed
+check_non_num_rows('sub_grade')
+#as above
+check_non_num_rows('home_ownership')
+#as above + check if there is any abbreviation from the rule
+check_non_num_rows('annual_inc')
+#set last rows to mean or median or drop them
+check_non_num_rows('verification_status')
+#check whether there are only 3 values and change them into integers
+check_non_num_rows('issue_d')
+#change into dates / numbers
+check_non_num_rows('loan_status')
+#check whether there are only 2 values and change them into integers
+check_non_num_rows('pymnt_plan')
+#check if there is other value than "N" and if not - drop column
+check_non_num_rows('url')
+#drop, seems irrelevant
+check_non_num_rows('purpose')
+#assign randomly generated numbers for 'purpose' items
+check_non_num_rows('title')
+#drop?
+check_non_num_rows('zip_code')
+#drop the 'xx'?
+check_non_num_rows('addr_state')
+#assign into numbers
+check_non_num_rows('delinq_2yrs')
+df['delinq_2yrs'].head(n=35)
+#replace nan with mean() value
+check_non_num_rows('earliest_cr_line')
+#change into dates / numbers
+check_non_num_rows('inq_last_6mths')
+#replace nan with mean() value
+check_non_num_rows('open_acc')
+#replace nan with mean() value or drop last columns - repeating 'nan' pattern
+check_non_num_rows('pub_rec')
+#as above
+check_non_num_rows('revol_util')
+#change % into floats
+check_non_num_rows('total_acc')
+#replace nan with mean() value or drop last columns - repeating 'nan' pattern
+check_non_num_rows('initial_list_status')
+#investigate this column and its meaning
+check_non_num_rows('last_pymnt_d')
+#change into dates / numbers?
+check_non_num_rows('last_credit_pull_d')
+#as above
+check_non_num_rows('collections_12_mths_ex_med')
+#replace nan with mean() value or drop last columns - repeating 'nan' pattern
+check_non_num_rows('application_type')
+#check if there is other than "individual" and if not - drop column
+check_non_num_rows('acc_now_delinq')
+#replace nan with mean() value or drop last columns - repeating 'nan' pattern
+check_non_num_rows('chargeoff_within_12_mths')
+#replace nan with mean() value or drop last columns - repeating 'nan' pattern
+#or maybe a median() value
+check_non_num_rows('delinq_amnt')
+#replace nan with mean() value or drop last columns - repeating 'nan' pattern
+check_non_num_rows('tax_liens')
+#replace nan with mean() value or drop last columns - repeating 'nan' pattern
+check_non_num_rows('hardship_flag')
+#check if there is other than "N" and if not - drop column
+check_non_num_rows('disbursement_method')
+#check if there is other than "cash" and if not - drop column
+check_non_num_rows('debt_settlement_flag')
+#check if there is other than "cash" and if not - drop column
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+df['funded_amnt']
+df['term']
 str_elem.loc[str_elem[1] == 'False']
 
 str_elem(df.iloc[:,1])
 index = str_list.index(['False'])
 
+for col in df.columns:
+    for i, row in df[col].iteritems():
+        row.to_numeric()
+        # try:
+        #     row.to_numeric()
+        # except:
+        #     Exception('Błąd!')
 
 #df.iloc[:,50].fillna(0, inplace=True)
 
