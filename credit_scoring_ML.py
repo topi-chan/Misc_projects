@@ -42,11 +42,15 @@ df_descr.iloc[:1]
 
 for col in df_descr.columns:
     print(col)
-loc = []
-for element in almost_empty_col:
-    loc.append(df_descr.index[df_descr['LoanStatNew']==element].tolist())
-for l in loc:
-    print(df_descr.loc[l, 'Description'])
+
+def print_description(col_name_list):
+    loc = []
+    for element in col_name_list:
+        loc.append(df_descr.index[df_descr['LoanStatNew']==element].tolist())
+    for l in loc:
+        print(df_descr.loc[l, 'Description'])
+
+print_description(almost_empty_col)
 
 df_descr.loc[50, 'Description']
 df_descr.loc[52, 'Description']
@@ -60,6 +64,7 @@ df_descr.loc[150, 'Description']
 
 for l in loc:
     print(df_descr.loc[l, 'LoanStatNew'])
+
 df['mths_since_last_delinq'].head()
 df['mths_since_last_delinq'].mean()
 df['mths_since_last_delinq'].median()
@@ -142,11 +147,9 @@ empty_check(df)
 df.loc[random.randrange(1, 40520), 'emp_title']
 df.loc[random.randrange(1, 40520), 'emp_length']
 
-loc = []
-loc.append(df_descr.index[df_descr['LoanStatNew']=='emp_title'].tolist())
-loc.append(df_descr.index[df_descr['LoanStatNew']=='emp_length'].tolist())
-for l in loc:
-    print(df_descr.loc[l, 'Description'])
+emp_col = ['emp_title', 'emp_length']
+print_description(emp_col)
+
 df_descr.loc[20, 'Description']
 df_descr.loc[19, 'Description']
 
@@ -167,6 +170,33 @@ df = df.drop(['emp_title'], axis = 1)
 
 
 empty_check(df)
+
+df.loc[random.randrange(1, 40520), 'pub_rec_bankruptcies']
+print_description(['pub_rec_bankruptcies'])
+df['pub_rec_bankruptcies'] = df['pub_rec_bankruptcies'].fillna(
+                             df['pub_rec_bankruptcies'].mean())
+
+empty_check(df)
+
+df['pub_rec_bankruptcies'].head(n=15)
+
+
+
+#check if dataframe contains only numeric values
+str_elem = df.apply(lambda s: pd.to_numeric(s, errors='coerce').notnull().all())
+non_numeric_elements = []
+for i, row in str_elem.iteritems():
+    row = str(row)
+    if row == 'True':
+        non_numeric_elements.append(i)
+
+non_numeric_elements
+
+str_elem.loc[str_elem[1] == 'False']
+
+str_elem(df.iloc[:,1])
+index = str_list.index(['False'])
+
 
 #df.iloc[:,50].fillna(0, inplace=True)
 
