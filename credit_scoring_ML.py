@@ -20,10 +20,9 @@ for col in df.columns:
 print(empty_col)
 df.head()
 
-cols = df.columns[:]
+cols = df.columns
 colours = ['#000099', '#ffff00']  # yellow is missing. blue is not missing
 sns.heatmap(df[cols].isnull(), cmap=sns.color_palette(colours))
-print(empty_col)
 df_minus_empty_col = df.drop(empty_col, axis=1)
 
 print(df_minus_empty_col.head(n=20))
@@ -38,9 +37,10 @@ def empty_check(df_instance):
         if round(pct_missing) == 1:
             almost_empty_col.append(col), almost_empty_col.append(value)
     print(almost_empty_col)
+    return almost_empty_col
 
 
-empty_check(df_minus_empty_col)
+almost_empty_col = empty_check(df_minus_empty_col)
 df = df_minus_empty_col
 
 df_descr = pd.read_csv('LCDataDictionary.csv')
@@ -84,7 +84,8 @@ df['mths_since_last_delinq'].quantile([0.25, 0.5, 0.75])
 df['mths_since_last_delinq'] = pd.qcut(df
                                        ['mths_since_last_delinq'].values, q=10).codes+1
 
-df['mths_since_last_delinq'] = df['mths_since_last_delinq'].replace(to_replace=0, value=20)
+df['mths_since_last_delinq'] = df['mths_since_last_delinq'].replace(to_replace=0,
+                                                                    value=20)
 df['mths_since_last_delinq'].head(n=25)
 
 
@@ -95,7 +96,8 @@ df['mths_since_last_record'].max()
 df['mths_since_last_record'].quantile([0.25, 0.5, 0.75])
 df['mths_since_last_record'] = pd.qcut(df['mths_since_last_record'].values,
                                        q=10, duplicates='drop').codes+1
-df['mths_since_last_record'] = df['mths_since_last_record'].replace(to_replace=0, value=20)
+df['mths_since_last_record'] = df['mths_since_last_record'].replace(to_replace=0,
+                                                                    value=20)
 df['mths_since_last_record'].mean()
 
 
@@ -248,7 +250,7 @@ def check_consistency(column, *phrases):
         if found != True:
             print(i, row)
 
-
+check_consistency('term', '36 months', '60 months')
 # change months into integers
 for i, row in df['term'].iteritems():
     row = str(row)
@@ -266,18 +268,16 @@ df['int_rate'].dtypes
 #     row = float(row)
 #     print(row)
 # maybe this will suffice? as data is hardly converted here
-
+# TODO: check whether % values work with model
 
 check_non_num_rows('grade')
 # possibly leave it like that or change into integers for coherency and speed
 # let's use hot encoding.
 
-
 def hot_encoding(col):
     global df
     df = pd.concat([df.drop(col, axis=1), pd.get_dummies(df[col])], axis=1)
     return df
-
 
 df = hot_encoding('grade')
 df.head()
@@ -312,6 +312,8 @@ check_non_num_rows('verification_status')
 # check whether there are only 3 values and change them into integers
 check_consistency('verification_status', 'Not Verified', 'Verified', 'Source Verified')
 # ok!
+df = hot_encoding('verification_status')
+
 check_non_num_rows('issue_d')
 # change into dates / numbers
 df['issue_d'] = pd.to_datetime(df['issue_d'])
@@ -322,8 +324,8 @@ check_non_num_rows('loan_status')
 # check whether there are only 2 values and change them into integers
 #!! this is value to be predicted by the model!!
 check_consistency('loan_status', 'Fully Paid',  'Charged Off')
-df = df.drop(labels=39786)
-# dropped one empty row - useless for the model
+#df = df.drop(labels=39786) dropped one empty row before - useless for the model
+df = hot_encoding('loan_status')
 
 
 check_non_num_rows('pymnt_plan')
@@ -347,8 +349,55 @@ check_consistency('purpose', 'major_purchase', 'home_improvement',
                   'car', 'credit_card', 'medical', 'educational', 'moving', 'other', 'vacation')
 df = hot_encoding('purpose')
 
-check_non_num_rows('title')
-# drop?
+check_non_num_rows('title') # many values - drop?
+
+title_series = df['title'].value_counts()
+title_series.head(n=55)
+title_series.head(n=55).sum()
+consolidation = personal = home = medical = wedding = bussines = other = 0
+for i, row in df['title'].iteritems():
+    row = str(row)
+    if re.search("consolidation", row, re.IGNORECASE):
+        consolidation += 1
+    elif re.search("personal", row, re.IGNORECASE):
+        personal += 1
+    elif re.search("home", row, re.IGNORECASE):
+        home += 1
+    elif re.search("medical", row, re.IGNORECASE):
+        medical += 1
+    elif re.search("wedding", row, re.IGNORECASE) or re.search("ring", row, re.IGNORECASE):
+        wedding += 1
+    elif re.search("business", row, re.IGNORECASE):
+        bussines += 1
+    else:
+        other += 1
+print(consolidation, personal, home, medical, wedding, bussines, other)
+sum = consolidation + personal + home + medical + wedding + bussines + other
+sum
+df['title']
+df['title'].isnull().values.any()
+df['title'].isna().sum()
+df['title'].fillna("other", inplace=True)
+
+for i, row in df['title'].iteritems():
+    row = str(row)
+    if re.search("consolidation", row, re.IGNORECASE):
+        row_value = "consolidation"
+    elif re.search("personal", row, re.IGNORECASE):
+        row_value = "personal"
+    elif re.search("home", row, re.IGNORECASE):
+        row_value = "home"
+    elif re.search("medical", row, re.IGNORECASE):
+        row_value = "medical"
+    elif re.search("wedding", row, re.IGNORECASE) or re.search("ring", row, re.IGNORECASE):
+        row_value = "wedding"
+    elif re.search("business", row, re.IGNORECASE):
+        row_value = "bussines"
+    else:
+        row_value = "other"
+    df.at[i, 'title'] = row_value
+df['title'].value_counts()
+df = hot_encoding('title')
 
 
 def generate_checklist(col):
@@ -358,10 +407,6 @@ def generate_checklist(col):
     print(list(set(row_list)))
     print(len(list(set(row_list))))
 
-
-generate_checklist('title')
-# too many unrelated variables - drop
-df = df.drop(labels='title', axis=1)
 
 check_non_num_rows('zip_code')
 # drop the 'xx'? check if it's relevant at all
@@ -375,13 +420,13 @@ check_non_num_rows('addr_state')
 # assign into numbers
 generate_checklist('addr_state')
 # label encoding or hot encoding?
-# TODO: choose encoding
+# TODO: choose encoding - atm: label encoding
+df['addr_state'] = preprocessing.LabelEncoder().fit_transform(df['addr_state'])
 
 check_non_num_rows('delinq_2yrs')
 df['delinq_2yrs'].head(n=35)
 # replace nan with median() value
-df['delinq_2yrs'].fillna(df['delinq_2yrs'].median(), inplace=True)
-
+df['delinq_2yrs'] = df['delinq_2yrs'].fillna(df['delinq_2yrs'].median())
 
 check_non_num_rows('earliest_cr_line')
 # change into dates
@@ -400,13 +445,12 @@ check_non_num_rows('open_acc')
 df['open_acc'].mean()
 df['open_acc'].median()
 df['open_acc'].std()
-df['open_acc'].fillna(df['open_acc'].median(), inplace=True)
+df['open_acc'] = df['open_acc'].fillna(df['open_acc'].median())
 
 check_non_num_rows('pub_rec')
 # as above
 # repeating pattern of missing values for some records, eg. 42450 - drop.
-df.drop(labels=[39786, 42450, 42451, 42460, 42473, 42481, 42484, 42495, 42510],
-        inplace=True)
+df.drop(labels=[42460, 42473, 42484, 42495, 42510], inplace=True)
 
 check_non_num_rows('revol_util')
 # change % into floats
@@ -414,7 +458,7 @@ check_non_num_rows('revol_util')
 
 check_non_num_rows('total_acc')
 # replace nan with mean() value or drop last columns - repeating 'nan' pattern
-# update: already dropped in previous analysis
+df.drop(labels=[42515,42516,42517,42518], inplace=True)
 
 check_non_num_rows('initial_list_status')
 # investigate this column and its meaning
@@ -496,5 +540,55 @@ df.drop(columns='disbursement_method', inplace=True)
 check_non_num_rows('debt_settlement_flag')
 # check if there is other than "cash" and if not - drop column
 df['debt_settlement_flag'].value_counts()
-df['debt_settlement_flag'].replace('Y', 1)
-df['debt_settlement_flag'].replace('N', 0)
+df['debt_settlement_flag'] = df['debt_settlement_flag'].replace('Y', 1)
+df['debt_settlement_flag'] = df['debt_settlement_flag'].replace('N', 0)
+
+#id is irrelevant
+df.drop(columns='id', inplace=True)
+
+#checking if all values are numeric
+if df.apply(lambda s: pd.to_numeric(s, errors='coerce').notnull().all()) is True:
+    print("All values are numeric!")
+else:
+    print("Something went wrong.")
+df.applymap(np.isreal)
+only_num_series = df.select_dtypes(include=np.number).columns.tolist()
+all_series = []
+for col in df.columns:
+    all_series.append(col)
+non_num_series = set(only_num_series) ^ set(all_series)
+non_num_series
+
+df['desc'].head(n=15)
+df['desc'].value_counts()
+
+df['earliest_cr_line'].head(n=15)
+df['earliest_cr_line'].value_counts()
+
+df['emp_length'].head(n=15)
+df['emp_length'].value_counts()
+
+df['int_rate'].head(n=15)
+df['int_rate'].value_counts()
+
+df['issue_d'].head(n=15)
+df['issue_d'].value_counts()
+
+df['last_credit_pull_d'].head(n=15)
+df['last_credit_pull_d'].value_counts()
+
+df['last_pymnt_d'].head(n=15)
+df['last_pymnt_d'].value_counts()
+
+df['revol_util'].head(n=15)
+df['revol_util'].value_counts()
+
+df['term'].head(n=15)
+df['term'].value_counts()
+
+
+#export preprocessed file
+df.to_csv(r'credit_scoring_for_model.csv')
+
+#if needed for module export
+df
