@@ -224,6 +224,19 @@ def check_non_num_rows(col_name):
             return (i, row)
 
 check_non_num_rows('term')
+
+
+def check_consistency(column, *phrases):
+    for i, row in df[column].iteritems():
+        row = str(row)
+        found = False
+        for r in range (len(phrases)):
+            if re.search(phrases[r], row):
+                found = True
+        if found != True:
+            print(i, row)
+
+
 #change months into integers
 for i, row in df['term'].iteritems():
     row = str(row)
@@ -258,12 +271,8 @@ df.head()
 check_non_num_rows('home_ownership')
 #as above + check if there is any abbreviation from the rule
 #MORTGAGE OWN RENT
-for i, row in df['home_ownership'].iteritems():
-    row = str(row)
-    if re.search("MORTGAGE", row) or re.search("OWN", row) or re.search("RENT", row):
-        pass
-    else:
-        print(i, row)
+check_consistency('home_ownership', 'MORTGAGE', 'OWN', 'RENT')
+
 df.at[39786,'home_ownership'] = 'NONE'
 df = pd.concat([df.drop('home_ownership', axis=1),
                                   pd.get_dummies(df['home_ownership'])], axis=1)
@@ -292,16 +301,6 @@ df = df.drop(labels=[39786, 42450, 42451, 42481, 42534])
 #         else:
 #             print(i, row)
 
-def check_consistency(column, *phrases):
-    for i, row in df[column].iteritems():
-        row = str(row)
-        if re.search(phrases[i], row) or i for i in range(len(phrases)) re.search(phrases[i], row):
-            pass
-        else:
-            print(i, row)
-#        if re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row):
-#            pass
-#or re.search(phrases[1], row) or re.search(phrases[2], row)
 
 
 
