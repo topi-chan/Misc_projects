@@ -221,7 +221,7 @@ def check_non_num_rows(col_name):
         try:
             row = int(row)
         except:
-            return (i, row)
+            print(i, row)
 
 check_non_num_rows('term')
 
@@ -259,13 +259,17 @@ df['int_rate'].dtypes
 check_non_num_rows('grade')
 #possibly leave it like that or change into integers for coherency and speed
 #let's use hot encoding.
-df = pd.concat([df.drop('grade', axis=1), pd.get_dummies(df['grade'])], axis=1)
+
+def hot_encoding(col):
+    global df
+    df = pd.concat([df.drop(col, axis=1), pd.get_dummies(df[col])], axis=1)
+    return df
+df = hot_encoding('grade')
 df.head()
 
 check_non_num_rows('sub_grade')
 #as above
-df = pd.concat([df.drop('sub_grade', axis=1),
-                                     pd.get_dummies(df['sub_grade'])], axis=1)
+df = hot_encoding('sub_grade')
 df.head()
 
 check_non_num_rows('home_ownership')
@@ -274,9 +278,7 @@ check_non_num_rows('home_ownership')
 check_consistency('home_ownership', 'MORTGAGE', 'OWN', 'RENT')
 
 df.at[39786,'home_ownership'] = 'NONE'
-df = pd.concat([df.drop('home_ownership', axis=1),
-                                  pd.get_dummies(df['home_ownership'])], axis=1)
-
+df = hot_encoding('home_ownership')
 
 
 check_non_num_rows('annual_inc')
@@ -291,38 +293,64 @@ check_non_num_rows('annual_inc')
 df = df.drop(labels=[39786, 42450, 42451, 42481, 42534])
 
 
-# def check_consistency(column, *phrases):
-#     for (i, row), p in map(df[column].iteritems(), phrases):
-#         row = str(row)
-#         if re.findall(p, row):
-#                 pass
-# #        if re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row):
-# #            pass
-#         else:
-#             print(i, row)
-
-
-
-
 check_non_num_rows('verification_status')
 #check whether there are only 3 values and change them into integers
 check_consistency('verification_status', 'Not Verified', 'Verified', 'Source Verified')
-
+#ok!
 check_non_num_rows('issue_d')
 #change into dates / numbers
+df['issue_d'] = pd.to_datetime(df['issue_d'])
+df['issue_d'] = df['issue_d'].dt.date
+#changed into date, can it be properly understood by the model?
+
 check_non_num_rows('loan_status')
 #check whether there are only 2 values and change them into integers
 #!! this is value to be predicted by the model!!
+check_consistency('loan_status', 'Fully Paid',  'Charged Off')
+df = df.drop(labels=39786)
+#dropped one empty row - useless for the model
+
+
 check_non_num_rows('pymnt_plan')
 #check if there is other value than "N" and if not - drop column
+check_consistency('pymnt_plan', 'n')
+df = df.drop(labels = 'pymnt_plan', axis = 1)
+
 check_non_num_rows('url')
-#drop, seems irrelevant
+#drop, seems irrelevant; also: url-s needs login, don't know if working
+df = df.drop(labels = 'url', axis = 1)
+
 check_non_num_rows('purpose')
-#assign randomly generated numbers for 'purpose' items
+#assign randomly generated numbers for 'purpose' items or clean and hot encoding
+row_list = []
+for i, row in df['purpose'].iteritems():
+    row_list.append(row)
+list(set(row_list))
+df['purpose'].fillna("other",inplace=True)
+check_consistency('purpose', 'major_purchase', 'home_improvement',
+'debt_consolidation', 'wedding', 'small_business', 'house', 'renewable_energy',
+'car','credit_card', 'medical', 'educational', 'moving', 'other', 'vacation')
+df = hot_encoding('purpose')
+
 check_non_num_rows('title')
 #drop?
+
+def generate_checklist(col):
+    row_list = []
+    for i, row in df[col].iteritems():
+        row_list.append(row)
+    print(list(set(row_list)))
+    print(len(list(set(row_list))))
+
+generate_checklist('title')
+#too many unrelated variables - drop
+df = df.drop(labels = 'title', axis = 1)
+
 check_non_num_rows('zip_code')
-#drop the 'xx'?
+#drop the 'xx'? check if it's relevant at all
+generate_checklist('zip_code')
+#dunno what to do with  it. 838 values but seems relevant.
+
 check_non_num_rows('addr_state')
 #assign into numbers
 check_non_num_rows('delinq_2yrs')
@@ -365,23 +393,6 @@ check_non_num_rows('disbursement_method')
 #check if there is other than "cash" and if not - drop column
 check_non_num_rows('debt_settlement_flag')
 #check if there is other than "cash" and if not - drop column
-
-
-def change_column(col_name):
-    for i, row in df[col_name].iteritems():
-            row = str(row)
-            if row == 0:
-                row_value = 0
-            elif row == row:
-                row_value = 0.5
-            elif row == row:
-                row_value = 0.75
-            else:
-                row_value = 1
-            df.at[i, col_name] = row_value
-
-
-
 
 
 
