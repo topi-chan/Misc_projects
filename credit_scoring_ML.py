@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
+from sklearn import preprocessing
 import matplotlib, sklearn, csv, random, statistics, re
 
 
@@ -326,7 +327,7 @@ row_list = []
 for i, row in df['purpose'].iteritems():
     row_list.append(row)
 list(set(row_list))
-df['purpose'].fillna("other",inplace=True)
+df['purpose'].fillna("other", inplace=True)
 check_consistency('purpose', 'major_purchase', 'home_improvement',
 'debt_consolidation', 'wedding', 'small_business', 'house', 'renewable_energy',
 'car','credit_card', 'medical', 'educational', 'moving', 'other', 'vacation')
@@ -350,24 +351,54 @@ check_non_num_rows('zip_code')
 #drop the 'xx'? check if it's relevant at all
 generate_checklist('zip_code')
 #dunno what to do with  it. 838 values but seems relevant.
+#choosen - label encoding, as number of variables is substantial.
+df['zip_code'] = preprocessing.LabelEncoder().fit_transform(df['zip_code'])
+df.head()
 
 check_non_num_rows('addr_state')
 #assign into numbers
+generate_checklist('addr_state')
+#label encoding or hot encoding?
+## TODO: choose encoding
+
 check_non_num_rows('delinq_2yrs')
 df['delinq_2yrs'].head(n=35)
-#replace nan with mean() value
+#replace nan with median() value
+df['delinq_2yrs'].fillna(df['delinq_2yrs'].median(), inplace=True)
+
+
 check_non_num_rows('earliest_cr_line')
-#change into dates / numbers
+#change into dates
+df['earliest_cr_line'] = pd.to_datetime(df['earliest_cr_line'])
+df['earliest_cr_line'] = df['earliest_cr_line'].dt.date
+
 check_non_num_rows('inq_last_6mths')
-#replace nan with mean() value
+#it is important value; also there is a pattern - on last rows severas columns
+#are missing - let's drop them for consistency (but check other columns first)
+df.loc[42525]
+df.loc[42526]
+df = df.drop(df.index[42515:])
+
 check_non_num_rows('open_acc')
 #replace nan with mean() value or drop last columns - repeating 'nan' pattern
+df['open_acc'].mean()
+df['open_acc'].median()
+df['open_acc'].std()
+df['open_acc'].fillna(df['open_acc'].median(), inplace=True)
+
 check_non_num_rows('pub_rec')
 #as above
+#repeating pattern of missing values for some records, eg. 42450 - drop.
+df.drop(labels=[39786, 42450, 42451, 42460, 42473, 42481, 42484, 42495, 42510],
+                inplace=True)
+
 check_non_num_rows('revol_util')
 #change % into floats
+## TODO: check for 'int_rate' and apply same rules
+
 check_non_num_rows('total_acc')
 #replace nan with mean() value or drop last columns - repeating 'nan' pattern
+
 check_non_num_rows('initial_list_status')
 #investigate this column and its meaning
 check_non_num_rows('last_pymnt_d')
