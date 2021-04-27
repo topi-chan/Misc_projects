@@ -282,15 +282,28 @@ check_non_num_rows('annual_inc')
 df = df.drop(labels=[39786, 42450, 42451, 42481, 42534])
 
 
+# def check_consistency(column, *phrases):
+#     for (i, row), p in map(df[column].iteritems(), phrases):
+#         row = str(row)
+#         if re.findall(p, row):
+#                 pass
+# #        if re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row):
+# #            pass
+#         else:
+#             print(i, row)
+
 def check_consistency(column, *phrases):
-    for (i, row), p in zip(df[column].iteritems(), phrases):
+    for i, row in df[column].iteritems():
         row = str(row)
-        if re.findall(p, row):
-                pass
-#        if re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row):
-#            pass
+        if re.search(phrases[i], row) or i for i in range(len(phrases)) re.search(phrases[i], row):
+            pass
         else:
             print(i, row)
+#        if re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row) or re.search(phrase, row):
+#            pass
+#or re.search(phrases[1], row) or re.search(phrases[2], row)
+
+
 
 check_non_num_rows('verification_status')
 #check whether there are only 3 values and change them into integers
