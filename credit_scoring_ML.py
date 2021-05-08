@@ -59,7 +59,8 @@ def print_description(col_name_list):
         loc.append(df_descr.index[df_descr['LoanStatNew'] == element].tolist())
     for l in loc:
         print(df_descr.loc[l, 'Description'])
-
+if __name__ == '__main__':
+    print_description(col_name_list)
 
 print_description(almost_empty_col)
 
@@ -159,6 +160,7 @@ df.loc[random.randrange(1, 40520), 'emp_title']
 df.loc[random.randrange(1, 40520), 'emp_length']
 
 emp_col = ['emp_title', 'emp_length']
+
 print_description(emp_col)
 
 df_descr.loc[20, 'Description']
@@ -325,7 +327,7 @@ check_non_num_rows('loan_status')
 #!! this is value to be predicted by the model!!
 check_consistency('loan_status', 'Fully Paid',  'Charged Off')
 #df = df.drop(labels=39786) dropped one empty row before - useless for the model
-df = hot_encoding('loan_status')
+#df = hot_encoding('loan_status') - leave it!
 
 
 check_non_num_rows('pymnt_plan')
