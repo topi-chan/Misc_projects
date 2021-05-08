@@ -59,6 +59,7 @@ def print_description(col_name_list):
         loc.append(df_descr.index[df_descr['LoanStatNew'] == element].tolist())
     for l in loc:
         print(df_descr.loc[l, 'Description'])
+
 if __name__ == '__main__':
     print_description(col_name_list)
 
@@ -204,6 +205,8 @@ def numeric_check():
             only_numeric_elements.append(i)
     print(only_numeric_elements)
 
+if __name__ == '__main__':
+    numeric_check()
 
 numeric_check()
 
@@ -238,6 +241,8 @@ def check_non_num_rows(col_name):
         except:
             print(i, row)
 
+if __name__ == '__main__':
+    check_non_num_rows(col_name)
 
 check_non_num_rows('term')
 
@@ -251,6 +256,9 @@ def check_consistency(column, *phrases):
                 found = True
         if found != True:
             print(i, row)
+
+if __name__ == '__main__':
+    check_consistency(column, *phrases)
 
 check_consistency('term', '36 months', '60 months')
 # change months into integers
